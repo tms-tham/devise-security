@@ -28,19 +28,20 @@ Warden::Manager.after_set_user only: :fetch do |record, warden, options|
   if record.devise_modules.include?(:session_limitable) &&
      warden.authenticated?(scope) &&
      options[:store] != false
+
     if record.unique_session_id != warden.session(scope)['unique_session_id'] &&
        !record.skip_session_limitable? &&
        !warden.session(scope)['devise.skip_session_limitable']
+
+      # Ghi log khi phát hiện phiên mới bị từ chối
       Rails.logger.warn do
-        '[devise-security][session_limitable] session id mismatch: '\
+        '[devise-security][session_limitable] New session attempt denied: '\
         "expected=#{record.unique_session_id.inspect} "\
         "actual=#{warden.session(scope)['unique_session_id'].inspect}"
       end
-      if record.id == warden.user(scope)&.id
-        # warden.raw_session.clear
-        warden.logout(scope)
-        throw :warden, scope: scope, message: :session_limited
-      end
+
+      # Ngăn phiên mới được lưu trữ và trả về lỗi
+      throw :warden, scope: scope, message: :session_limited_new_session_denied
     end
   end
 end
