@@ -37,7 +37,7 @@ Warden::Manager.after_set_user only: :fetch do |record, warden, options|
         "actual=#{warden.session(scope)['unique_session_id'].inspect}"
       end
       # warden.raw_session.clear
-      # warden.logout(scope)
+      warden.logout(scope)
       throw :warden, scope: scope, message: :session_limited
     end
   end
