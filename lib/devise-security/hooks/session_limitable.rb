@@ -36,9 +36,11 @@ Warden::Manager.after_set_user only: :fetch do |record, warden, options|
         "expected=#{record.unique_session_id.inspect} "\
         "actual=#{warden.session(scope)['unique_session_id'].inspect}"
       end
-      # warden.raw_session.clear
-      warden.logout(scope)
-      throw :warden, scope: scope, message: :session_limited
+      if record.id == warden.user(scope)&.id
+        # warden.raw_session.clear
+        warden.logout(scope)
+        throw :warden, scope: scope, message: :session_limited
+      end
     end
   end
 end
